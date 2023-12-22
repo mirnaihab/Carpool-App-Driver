@@ -19,7 +19,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   Map<String, String> profileDetails = {};
-
+  bool isLoading = true;
   @override
   void initState() {
     super.initState();
@@ -44,6 +44,7 @@ class _ProfilePageState extends State<ProfilePage> {
             'platenumber': driverSnapshot['platenumber']?.toString() ?? 'N/A',
             'email': driverSnapshot['email']?.toString() ?? 'N/A',
           };
+          isLoading = false;
         });
       }
     } catch (e) {
@@ -72,78 +73,101 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-    double screenWidth = MediaQuery.of(context).size.width;
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.location_pin),
-          onPressed: () {
-            Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => AddRoutePage(driverID: widget.driverID)),
-            );
-          },
+    double screenHeight = MediaQuery
+        .of(context)
+        .size
+        .height;
+    double screenWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
+    if (isLoading) {
+      // Show loading indicator while data is loading
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
         ),
-        centerTitle: true,
-        title: Text(
-          "Profile",
-          style: GoogleFonts.pangolin(
-            textStyle: TextStyle(fontSize: screenHeight * 0.04, color: Colors.grey.shade900),
-          ),
-        ),
-        backgroundColor: Colors.blueGrey.shade300,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.shopping_cart),
+      );
+    } else {
+      return Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.location_pin),
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Requests(driverID: widget.driverID),
-                ),
+              Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) =>
+                    AddRoutePage(driverID: widget.driverID)),
               );
             },
           ),
-          Padding(
-            padding: EdgeInsets.only(right: screenWidth * 0.03),
-            child: IconButton(
-              icon: Icon(Icons.logout),
+          centerTitle: true,
+          title: Text(
+            "Profile",
+            style: GoogleFonts.pangolin(
+              textStyle: TextStyle(
+                  fontSize: screenHeight * 0.04, color: Colors.grey.shade900),
+            ),
+          ),
+          backgroundColor: Colors.blueGrey.shade300,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.shopping_cart),
               onPressed: () {
-                FirebaseAuth.instance.signOut();
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => LoginPage(),
+                    builder: (context) => Requests(driverID: widget.driverID),
                   ),
                 );
               },
             ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.35, vertical: screenHeight * 0.1),
-          color: Colors.grey.shade200,
-          child: Column(
-            children: [
-              CircleAvatar(
-                radius: 70,
-                backgroundImage: AssetImage('assets/profile.png'),
+            Padding(
+              padding: EdgeInsets.only(right: screenWidth * 0.03),
+              child: IconButton(
+                icon: Icon(Icons.logout),
+                onPressed: () {
+                  FirebaseAuth.instance.signOut();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LoginPage(),
+                    ),
+                  );
+                },
               ),
-              SizedBox(height: screenHeight * 0.06),
-              itemProfile('Username', profileDetails['username']!, CupertinoIcons.person),
-              itemProfile('Phone', profileDetails['phone']!, CupertinoIcons.phone),
-              itemProfile('CarType', profileDetails['cartype']!, Icons.directions_car),
-              itemProfile('PlateNumber', profileDetails['platenumber']!, Icons.confirmation_number),
-              itemProfile('Email', profileDetails['email']!, CupertinoIcons.mail),
-              SizedBox(height: screenHeight * 0.06),
-            ],
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          child: Container(
+            padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.35, vertical: screenHeight * 0.1),
+            color: Colors.grey.shade200,
+            child: Column(
+              children: [
+                // CircleAvatar(
+                //   radius: 70,
+                //   backgroundImage: AssetImage('assets/profile.png'),
+                // ),
+                SizedBox(height: screenHeight * 0.06),
+                itemProfile('Username', profileDetails['username']!,
+                    CupertinoIcons.person),
+                itemProfile(
+                    'Phone', profileDetails['phone']!, CupertinoIcons.phone),
+                itemProfile('CarType', profileDetails['cartype']!,
+                    Icons.directions_car),
+                itemProfile('PlateNumber', profileDetails['platenumber']!,
+                    Icons.confirmation_number),
+                itemProfile(
+                    'Email', profileDetails['email']!, CupertinoIcons.mail),
+                SizedBox(height: screenHeight * 0.06),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   IconData _getIcon(String key) {

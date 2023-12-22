@@ -27,7 +27,7 @@ class Requests extends StatefulWidget {
 }
 class _RequestsState extends State<Requests> {
   late Stream<QuerySnapshot> _requestsStream;
-
+bool error =false;
   @override
   void initState() {
     super.initState();
@@ -75,6 +75,68 @@ class _RequestsState extends State<Requests> {
       }
     }
     return null; // Return null if data doesn't exist or is null
+  }
+
+  bool validateRequestTime(DateTime requestDateTime) {
+    DateTime now = DateTime.now();
+
+    // Check if the request date is before now
+    if (requestDateTime.isBefore(now)) {
+      return false; // Display error message
+    }
+
+    // Calculate the next day from now
+    DateTime nextDay = now.add(Duration(days: 1));
+
+    // Calculate 7:30 PM on the request date
+    DateTime requestTime730AM = DateTime(
+      requestDateTime.year,
+      requestDateTime.month,
+      requestDateTime.day,
+      07,
+      30,
+    );
+    DateTime requestTime530PM = DateTime(
+      requestDateTime.year,
+      requestDateTime.month,
+      requestDateTime.day,
+      17,
+      30,
+    );
+
+    // Calculate 11:30 PM now
+    DateTime nowTime1130PM = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      23,
+      30,
+    );
+
+    // Calculate 4:30 PM now
+    DateTime nowTime430PM = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      16,
+      30,
+    );
+
+    // Check if the request date is next day from now and the request time is 7:30 PM
+    if (requestDateTime.isAtSameMomentAs(nextDay) &&
+        requestDateTime.isAtSameMomentAs(requestTime730AM) &&
+        now.isAfter(nowTime1130PM)) {
+      return false; // Display error message
+    }
+
+    // Check if the request date is the same day as now and the request time is 5:30 PM
+    if (requestDateTime.isAtSameMomentAs(now) &&
+        requestDateTime.isAtSameMomentAs(requestTime530PM) &&
+        now.isAfter(nowTime430PM)) {
+      return false; // Display error message
+    }
+
+    return true; // Accept the request
   }
 
   void updateStatusInFirestore(
@@ -393,7 +455,14 @@ class _RequestsState extends State<Requests> {
                                                               ),
                                                               child: ElevatedButton(
                                                                 onPressed: () {
-                                                                  updateStatusInFirestore(snapshot.data!.docs[index], index, 'approved');
+                                                                  validateRequestTime(date)?
+                                                                    updateStatusInFirestore(
+                                                                        snapshot
+                                                                            .data!
+                                                                            .docs[index],
+                                                                        index,
+                                                                        'approved'):
+                                                                         error=true;
 
                                                                 },
                                                                 child: Text(
@@ -430,8 +499,8 @@ class _RequestsState extends State<Requests> {
                                                                 ),
                                                               ),
                                                             ),
-
-
+                                                          if(error==true)
+                                                              Text("time for accepting is invalid"),
                                                           SizedBox(
                                                               height: screenHeight *
                                                                   0.1),
